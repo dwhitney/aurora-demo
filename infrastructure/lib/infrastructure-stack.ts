@@ -8,7 +8,7 @@ export class InfrastructureStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const vpc = new ec2.Vpc(this, 'myrdsvpc');
+    const vpc = new ec2.Vpc(this, 'VPC');
 
     const cluster = new rds.ServerlessCluster(this, "AuroraServerless", {
       engine: rds.DatabaseClusterEngine.AURORA_POSTGRESQL,
@@ -30,7 +30,9 @@ export class InfrastructureStack extends cdk.Stack {
       },
     })
 
-    johnSecret.attach(cluster)
+    const johnAttached = johnSecret.attach(cluster)
+    cluster.addRotationMultiUser("JohnUserRotation", { secret: johnAttached })
+
 
     const aprilSecret = new secrets.Secret(this, "AprilSecret", {
       generateSecretString: {
@@ -38,13 +40,14 @@ export class InfrastructureStack extends cdk.Stack {
         generateStringKey: "password",
         passwordLength: 30,
         secretStringTemplate: JSON.stringify({
-          username: "john",
+          username: "april",
           masterarn: cluster.secret?.secretArn
         })
       },
     })
-
-    aprilSecret.attach(cluster)
+    
+    const aprilAttached = aprilSecret.attach(cluster)
+    cluster.addRotationMultiUser("AprilUserRotation", { secret: aprilAttached })
 
     new ssm.StringParameter(this, "ClusterArn", {
       parameterName: "/demo/rds/cluster-arn",
