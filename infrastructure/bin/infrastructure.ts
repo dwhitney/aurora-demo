@@ -4,4 +4,6 @@ import * as cdk from '@aws-cdk/core';
 import { InfrastructureStack } from '../lib/infrastructure-stack';
 
 const app = new cdk.App();
+cdk.Tags.of(app).add("Project", "Aurora Demo")
 new InfrastructureStack(app, 'AuroraDemoStack', {});
+
