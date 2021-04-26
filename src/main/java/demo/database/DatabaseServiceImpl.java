@@ -134,10 +134,8 @@ public class DatabaseServiceImpl {
     CREATE POLICY emp_rls_policy ON employee FOR all TO public USING (ename=current_user);
     GRANT SELECT (empno, ename, address) ON employee TO john;
     GRANT SELECT (empno, ename, address, salary) ON employee TO april; 
-
     """;
-//    CREATE POLICY emp_rls_policy ON employee FOR ALL TO PUBLIC USING (ename=current_user);
-//    ALTER TABLE employee ENABLE ROW LEVEL SECURITY;
+
     ExecuteStatementRequest createJohnRequest = ExecuteStatementRequest
       .builder()
       .database(ctx.database())
