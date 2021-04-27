@@ -18,6 +18,7 @@ export class InfrastructureStack extends cdk.Stack {
       vpc
     })
 
+
     const johnSecret = new secrets.Secret(this, "JohnSecret", {
       generateSecretString: {
         excludeCharacters: " %+~`#$&*()|[]{}:;<>?!'/@\"\\",

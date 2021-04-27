@@ -131,10 +131,14 @@ public class DatabaseServiceImpl {
     INSERT INTO employee values (1, 'john', '2 down str',  20000, 'HDFC-22001');
     INSERT INTO employee values (2, 'april', '132 south avn',  80000, 'HDFC-23029');
 
-    CREATE POLICY emp_rls_policy ON employee FOR all TO public USING (ename=current_user);
     GRANT SELECT (empno, ename, address) ON employee TO john;
     GRANT SELECT (empno, ename, address, salary) ON employee TO april; 
+    ALTER TABLE employee ENABLE ROW LEVEL SECURITY;
+    CREATE POLICY emp_rls_policy ON employee FOR all TO public USING (ename=current_user OR ename=regexp_replace(current_user, '_clone$', ''));
     """;
+
+    //GRANT SELECT (empno, ename, address) ON employee TO john;
+    //GRANT SELECT (empno, ename, address, salary) ON employee TO april; 
 
     ExecuteStatementRequest createJohnRequest = ExecuteStatementRequest
       .builder()
