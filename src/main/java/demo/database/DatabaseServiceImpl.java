@@ -17,13 +17,17 @@ import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueReques
 
 public class DatabaseServiceImpl {
 
+  /**
+   * Creates and instance of the DatabaseService 
+   * 
+   * @param <C> This is the shape of the Context object needed to execute this function
+   * @param ctx The context object containing the function's dependencies.
+   * @return DatabaseService that works with RDS DataAPI
+   */
   public static <C extends Context.HasClusterArn & Context.HasMasterSecretArn & Context.HasSecretsClient & Context.HasRdsDataClient & HasDatabase> DatabaseService create(C ctx){
     return new DatabaseService(){
       public void createUser(String secretArn){
         DatabaseServiceImpl.createUser(ctx, secretArn);
-      }
-      public List<String> getUsernames(){
-        return DatabaseServiceImpl.getUsernames((ctx));
       }
       public void createTable(){
         DatabaseServiceImpl.createTable(ctx);
@@ -37,26 +41,14 @@ public class DatabaseServiceImpl {
     };
   }
 
-  public static  <C extends Context.HasClusterArn & HasMasterSecretArn & Context.HasRdsDataClient & Context.HasDatabase> List<String> getUsernames(C ctx) {
-    ExecuteStatementRequest request = ExecuteStatementRequest
-      .builder()
-      .database(ctx.database())
-      .resourceArn(ctx.clusterArn())
-      .secretArn(ctx.masterSecretArn())
-      .sql("select usename from pg_user")
-      .build();
-
-    
-    ExecuteStatementResponse response = ctx.rdsDataClient().executeStatement(request);
-    
-    return response
-      .records()
-      .stream()
-      .map(row -> row.get(0).stringValue())
-      .collect(Collectors.toList());
-
-  }
-
+  /**
+   * Selects the given User's row. This is determined by a "row level policy" with a restriction that the user's name must exist in the ename column.
+   * 
+   * @param <C> This is the shape of the Context object needed to execute this function
+   * @param ctx The context object containing the function's dependencies.
+   * @param secretArn The secret containing the information needed to create the user in the database
+   * @return the User(s) 
+   */
   public static  <C extends Context.HasClusterArn & HasMasterSecretArn & Context.HasRdsDataClient & Context.HasDatabase> List<User> getUser(C ctx, String secretArn) {
     ExecuteStatementRequest request = ExecuteStatementRequest
       .builder()
@@ -76,6 +68,14 @@ public class DatabaseServiceImpl {
 
   }
 
+  /**
+   * Selects the user along with the salary. In this example, only 'april' should be able to call this function without an exception being thrown.
+   * 
+   * @param <C> This is the shape of the Context object needed to execute this function
+   * @param ctx The context object containing the function's dependencies.
+   * @param secretArn The secret containing the information needed to create the user in the database
+   * @return the User(s) 
+   */
   public static  <C extends Context.HasClusterArn & HasMasterSecretArn & Context.HasRdsDataClient & Context.HasDatabase> List<UserWithSalary> getUserWithSalaries(C ctx, String secretArn) {
     ExecuteStatementRequest request = ExecuteStatementRequest
       .builder()
@@ -96,6 +96,13 @@ public class DatabaseServiceImpl {
 
   }
 
+  /**
+   * Creates a user in the database. Namely in this example: 'john' and 'april'
+   * 
+   * @param <C> This is the shape of the Context object needed to execute this function
+   * @param ctx The context object containing the function's dependencies.
+   * @param secretArn The secret containing the information needed to create the user in the database
+   */
   public static <C extends Context.HasClusterArn & Context.HasMasterSecretArn & Context.HasSecretsClient & Context.HasRdsDataClient & Context.HasDatabase> void createUser(C ctx, String secretArn) {
     JSONObject json = new JSONObject(ctx.secretsManagerClient().getSecretValue(GetSecretValueRequest.builder().secretId(secretArn).build()).secretString());
     String password = json.getString("password");
@@ -123,6 +130,14 @@ public class DatabaseServiceImpl {
       ctx.rdsDataClient().executeStatement(createJohnRequest);
   }
 
+  /**
+   * This sets up the table along with its row and column level security. It should be noted that because of the way passwords are rotated by AWS,
+   * there is a regexp in the row level policy to match either the `current_user` or `current_user` + "_clone".
+   * More information here: https://docs.aws.amazon.com/secretsmanager/latest/userguide/enable-rotation-rds.html
+   * 
+   * @param <C> This is the shape of the Context object needed to execute this function
+   * @param ctx The context object containing the function's dependencies.
+   */
   public static <C extends Context.HasClusterArn & Context.HasMasterSecretArn & Context.HasSecretsClient & Context.HasRdsDataClient & Context.HasDatabase> void createTable(C ctx) {
     String sql = """
     DROP POLICY IF EXISTS emp_rls_policy ON employee;
@@ -136,9 +151,6 @@ public class DatabaseServiceImpl {
     ALTER TABLE employee ENABLE ROW LEVEL SECURITY;
     CREATE POLICY emp_rls_policy ON employee FOR all TO public USING (ename=current_user OR ename=regexp_replace(current_user, '_clone$', ''));
     """;
-
-    //GRANT SELECT (empno, ename, address) ON employee TO john;
-    //GRANT SELECT (empno, ename, address, salary) ON employee TO april; 
 
     ExecuteStatementRequest createJohnRequest = ExecuteStatementRequest
       .builder()

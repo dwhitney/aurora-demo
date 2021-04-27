@@ -8,6 +8,9 @@ import software.amazon.awssdk.services.rdsdata.RdsDataClient;
 import software.amazon.awssdk.services.ssm.model.GetParameterRequest;
 import software.amazon.awssdk.services.ssm.SsmClient;
 
+/**
+ * Homegrown DI setup for simplicity
+ */
 public class Context {
 
   public interface HasClusterArn{
