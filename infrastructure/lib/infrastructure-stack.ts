@@ -18,7 +18,6 @@ export class InfrastructureStack extends cdk.Stack {
       vpc
     })
 
-
     const johnSecret = new secrets.Secret(this, "JohnSecret", {
       generateSecretString: {
         excludeCharacters: " %+~`#$&*()|[]{}:;<>?!'/@\"\\",
@@ -33,7 +32,6 @@ export class InfrastructureStack extends cdk.Stack {
 
     const johnAttached = johnSecret.attach(cluster)
     cluster.addRotationMultiUser("JohnUserRotation", { secret: johnAttached })
-
 
     const aprilSecret = new secrets.Secret(this, "AprilSecret", {
       generateSecretString: {
@@ -55,19 +53,9 @@ export class InfrastructureStack extends cdk.Stack {
       stringValue: cluster.clusterArn
     })
 
-    new cdk.CfnOutput(this, "OutputClusterArn", {
-      exportName: "cluster-arn",
-      value: cluster.clusterArn
-    })
-
     new ssm.StringParameter(this, "MasterSecretArn", {
       parameterName: "/demo/rds/master-secret-arn",
       stringValue: cluster.secret?.secretArn  || ""
-    })
-
-    new cdk.CfnOutput(this, "OutputMasterSecretArn", {
-      exportName: "master-secret-arn",
-      value: cluster.secret?.secretArn || ""
     })
 
     new ssm.StringParameter(this, "JohnSecretArn", {
@@ -75,19 +63,29 @@ export class InfrastructureStack extends cdk.Stack {
       stringValue: johnSecret.secretArn
     })
 
-    new cdk.CfnOutput(this, "OutputJohnSecretArn", {
-      exportName: "john-secret-arn",
-      value: johnSecret.secretArn
-    })
-
     new ssm.StringParameter(this, "AprilSecretArn", {
       parameterName: "/demo/rds/april-secret-arn",
       stringValue: aprilSecret.secretArn
     })
 
+    new cdk.CfnOutput(this, "OutputMasterSecretArn", {
+      exportName: "master-secret-arn",
+      value: cluster.secret?.secretArn || ""
+    })
+
+    new cdk.CfnOutput(this, "OutputJohnSecretArn", {
+      exportName: "john-secret-arn",
+      value: johnSecret.secretArn
+    })
+
     new cdk.CfnOutput(this, "OutputAprilSecretArn", {
       exportName: "april-secret-arn",
       value: aprilSecret.secretArn
+    })
+
+    new cdk.CfnOutput(this, "OutputClusterArn", {
+      exportName: "cluster-arn",
+      value: cluster.clusterArn
     })
 
   }
