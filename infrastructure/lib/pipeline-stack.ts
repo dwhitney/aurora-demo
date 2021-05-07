@@ -1,10 +1,13 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from "@aws-cdk/aws-ec2";
+import * as ecr from "@aws-cdk/aws-ecr";
 import * as rds from "@aws-cdk/aws-rds";
 import * as secrets from "@aws-cdk/aws-secretsmanager";
 import * as ssm from "@aws-cdk/aws-ssm";
 
 export class InfrastructureStack extends cdk.Stack {
+  public readonly repo: ecr.Repository
+  
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
@@ -44,9 +47,15 @@ export class InfrastructureStack extends cdk.Stack {
         })
       },
     })
-    
+
     const aprilAttached = aprilSecret.attach(cluster)
     cluster.addRotationMultiUser("AprilUserRotation", { secret: aprilAttached })
+
+    this.repo = new ecr.Repository(this, "ECRRepo", {
+      imageScanOnPush: true,
+      repositoryName: "demo"
+    })
+    
 
     new ssm.StringParameter(this, "ClusterArn", {
       parameterName: "/demo/rds/cluster-arn",
@@ -66,6 +75,11 @@ export class InfrastructureStack extends cdk.Stack {
     new ssm.StringParameter(this, "AprilSecretArn", {
       parameterName: "/demo/rds/april-secret-arn",
       stringValue: aprilSecret.secretArn
+    })
+
+    new ssm.StringParameter(this, "ECRArn", {
+      parameterName: "/demo/rds/ecr-arn",
+      stringValue: this.repo.repositoryArn
     })
 
     new cdk.CfnOutput(this, "OutputMasterSecretArn", {
