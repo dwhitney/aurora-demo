@@ -1,6 +1,6 @@
 import { expect as expectCDK, matchTemplate, MatchStyle } from '@aws-cdk/assert';
 import * as cdk from '@aws-cdk/core';
-import * as Infrastructure from '../lib/pipeline-stack';
+import * as Infrastructure from '../lib/Infrastructure-stack';
 
 test('Empty Stack', () => {
     const app = new cdk.App();
