@@ -2,12 +2,11 @@
 
 This project demonstrates how to setup an Aurora Serverless Postgres Cluster with users who have access to the same table but differing levels of row and column level security. A couple of users will be created along with a table. Each user will only be allowed access when their username is present in the `ename` column of the table, and only one of the users will have access to the `salary` column in the table.
 
-TODO: Add architecture diagram like to following:
-
-(client with access to "User #1 Secret" ) -> Data API -> Aurora Serverless
-(client with access to "User #2 Secret" ) -> Data API -> Aurora Serverless
-
 ## Aurora Database Architecture
+
+The following diagram illustrates how users would interact with the solution.  Users with differing granularity of access make calls to the Data API for Aurora Serverless.  In turn, the Aurora Serverless Postgres Cluster enforces access granularity implemented when the infrastructure was created.
+
+![Architecture Diagram](https://github.com/dwhitney/aurora-demo/blob/main/Data%20API%20for%20Aurora%20Serverless.png)
 
 Two users, `john` and `april`, are created in Postgres with the following Java code:
 
