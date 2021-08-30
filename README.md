@@ -9,7 +9,7 @@ TODO: Add architecture diagram like to following:
 
 ## Aurora Database Architecture
 
-Two users, `john` and `arpil`, are created in Postgres with the following Java code:
+Two users, `john` and `april`, are created in Postgres with the following Java code:
 
 ```java
 public static <C extends Context.HasClusterArn & Context.HasMasterSecretArn & Context.HasSecretsClient & Context.HasRdsDataClient & Context.HasDatabase> void createUser(C ctx, String secretArn) {
